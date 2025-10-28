@@ -1,13 +1,19 @@
 # AWS EC2 Nginx Web Server
 
-Simple Terraform configuration that deploys an EC2 instance with Nginx on AWS.
+Terraform project with proper separation of backend and application infrastructure.
+
+## Project Structure
+
+```
+imanage/
+├── backend/     # S3 backend infrastructure (create once)
+└── app/         # Application infrastructure (EC2, Nginx)
+```
 
 ## What it does
 
-- Provisions a t2.micro EC2 instance in `ca-central-1`
-- Installs and configures Nginx web server
-- Creates a security group that restricts HTTP access to your current IP only
-- Outputs the public IP and URL to access the server
+- **backend/**: Creates S3 bucket for remote state storage with versioning and encryption
+- **app/**: Provisions t2.micro EC2 instance with Nginx, security group restricted to your IP
 
 ## Prerequisites
 
@@ -17,14 +23,22 @@ Simple Terraform configuration that deploys an EC2 instance with Nginx on AWS.
 
 ## Usage
 
+### 1. Setup Backend (One-time)
+
 ```bash
-# Initialize Terraform
+cd backend
 terraform init
+terraform apply
+```
 
-# Preview changes
+This creates the S3 bucket for state storage. **Only run this once.**
+
+### 2. Deploy Application
+
+```bash
+cd ../app
+terraform init
 terraform plan
-
-# Deploy infrastructure
 terraform apply
 ```
 
@@ -32,13 +46,17 @@ After deployment, the Nginx URL will be displayed in the output.
 
 ## Cleanup
 
-**Important:** Clean up resources to avoid AWS charges:
-
 ```bash
+# Destroy application infrastructure
+cd app
+terraform destroy
+
+# (Optional) Destroy backend if no longer needed
+cd ../backend
 terraform destroy
 ```
 
 ## Files
 
-- `terraform.tf` - Provider configuration
-- `main.tf` - Main infrastructure definitions
+- `backend/` - S3 bucket, versioning, encryption for state storage
+- `app/` - EC2 instance, security group, Nginx configuration
